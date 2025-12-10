@@ -1,6 +1,8 @@
+cmake
+dlib
+face_recognition
 fastapi
 uvicorn
 requests
 numpy
-face_recognition
 python-multipart
