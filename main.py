@@ -9,8 +9,10 @@ from pydantic import BaseModel
 from typing import List
 
 # --- CONFIGURATION ---
-MIN_BRIGHTNESS = 40   # 0-255 (Reject dark photos)
-MIN_SHARPNESS = 60    # Higher = Sharper (Reject blurry photos)
+# Reject photos darker than this (0-255)
+MIN_BRIGHTNESS = 40   
+# Reject photos blurrier than this (Higher = Sharper)
+MIN_SHARPNESS = 60    
 
 # --- Pydantic Models ---
 class FaceVerifyRequest(BaseModel):
@@ -20,8 +22,8 @@ class FaceVerifyRequest(BaseModel):
 class FaceVerifyResponse(BaseModel):
     isSamePerson: bool
     similarity: float
-    distance: float       # NEW: Return raw distance for debugging
-    warning: str = None   # NEW: Warn if quality is borderline
+    distance: float       # Returned for debugging
+    warning: str = None
 
 class EmbeddingRequest(BaseModel):
     imageUrl: str
@@ -87,8 +89,6 @@ async def verify_face(request: FaceVerifyRequest):
         
         # Validate Quality (Selfie is most critical)
         check_quality(img1_bgr)
-        # We can be lenient with profile pic, or check it too:
-        # check_quality(img2_bgr)
 
         # 2. Get Encodings (Upsample 1x for better small-face detection)
         encodings1 = face_recognition.face_encodings(img1_rgb, num_jitters=1)
@@ -101,13 +101,13 @@ async def verify_face(request: FaceVerifyRequest):
         encoding1 = encodings1[0]
         encoding2 = encodings2[0]
 
-        # Distance: 0.0 (Same) -> 1.0 (Different)
+        # Distance: 0.0 (Identical) -> 1.0 (Different)
         face_distance = face_recognition.face_distance([encoding1], encoding2)[0]
         
-        # Convert to Similarity: 1.0 (Same) -> 0.0 (Different)
+        # Convert to Similarity: 1.0 (Identical) -> 0.0 (Different)
         similarity = max(0.0, 1.0 - face_distance)
         
-        # Strict Threshold for 1:1
+        # Strict Threshold for 1:1 Check
         is_same = face_distance < 0.55  # Slightly stricter than default 0.6
 
         print(f"[Verify] Distance: {face_distance:.4f} | Similarity: {similarity:.4f} | Match: {is_same}")
