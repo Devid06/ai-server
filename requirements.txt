@@ -1,9 +1,7 @@
-cmake
-dlib
-face_recognition
 fastapi
 uvicorn
-requests
-numpy
 python-multipart
+face_recognition
+numpy
+requests
 opencv-python-headless
